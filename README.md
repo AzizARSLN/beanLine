@@ -67,7 +67,12 @@ Each inspection can be turned off or have its severity changed under **Settings 
 - Paths built at runtime cannot be resolved. Conditional beans (`@Profile`, `@Conditional`) are treated as present.
 - JAX-RS `@ApplicationPath` and Spring `server.servlet.context-path` are not read. URLs match by their ending instead.
 
-## Install from source
+## Install
+
+Download `beanline-<version>.zip` from the [latest release](https://github.com/AzizARSLN/beanLine/releases/latest).
+Do not unzip it. Install it with **Settings > Plugins > ⚙ > Install Plugin from Disk**.
+
+## Build from source
 
 Requires JDK 21.
 
@@ -75,8 +80,7 @@ Requires JDK 21.
 ./gradlew buildPlugin
 ```
 
-The plugin ZIP is written to `build/distributions`. Install it with **Settings > Plugins > ⚙ > Install Plugin from
-Disk**. To try it in a sandbox IDE, run `./gradlew runIde`.
+The plugin ZIP is written to `build/distributions`. To try it in a sandbox IDE, run `./gradlew runIde`.
 
 ## Development
 
