@@ -1,0 +1,48 @@
+<idea-plugin>
+    <id>io.github.azizarsln.beanline</id>
+    <name>Beanline</name>
+    <vendor url="https://github.com/AzizARSLN">Aziz ARSLAN</vendor>
+
+    <description><![CDATA[
+    Follow the line from a URL to the bean behind it, for Jakarta EE / Java EE and Spring back ends.
+    <ul>
+      <li>Find the JAX-RS or Spring MVC method behind any URL from Search Everywhere.</li>
+      <li>Navigate between beans and their injection points from the gutter.</li>
+      <li>Catch self-invocation and other container proxy pitfalls while you type.</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <searchEverywhereContributor
+                implementation="io.github.azizarsln.beanline.endpoint.EndpointSearchContributorFactory"/>
+
+        <codeInsight.lineMarkerProvider language="JAVA"
+                implementationClass="io.github.azizarsln.beanline.bean.BeanLineMarkerProvider"/>
+
+        <localInspection language="JAVA" shortName="BeanlineSelfInvocation"
+                displayName="Self-invocation bypasses the bean proxy"
+                groupName="Beanline" enabledByDefault="true" level="WARNING"
+                implementationClass="io.github.azizarsln.beanline.inspection.SelfInvocationInspection"/>
+        <localInspection language="JAVA" shortName="BeanlineUninterceptableMethod"
+                displayName="Interception annotation on a method the proxy cannot intercept"
+                groupName="Beanline" enabledByDefault="true" level="WARNING"
+                implementationClass="io.github.azizarsln.beanline.inspection.UninterceptableMethodInspection"/>
+        <localInspection language="JAVA" shortName="BeanlineManagedBeanNew"
+                displayName="Managed bean created with new"
+                groupName="Beanline" enabledByDefault="true" level="WARNING"
+                implementationClass="io.github.azizarsln.beanline.inspection.ManagedBeanNewInspection"/>
+    </extensions>
+
+    <actions>
+        <action id="Beanline.GoToEndpoint"
+                class="io.github.azizarsln.beanline.endpoint.GoToEndpointAction"
+                text="Go to Endpoint"
+                description="Find the endpoint for the selected text, the string at the caret or a URL on the clipboard">
+            <add-to-group group-id="GoToTargetEx" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift E"/>
+        </action>
+    </actions>
+</idea-plugin>

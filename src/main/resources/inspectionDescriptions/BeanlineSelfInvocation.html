@@ -1,0 +1,11 @@
+<html>
+<body>
+Reports calls inside a bean to a method of the same bean when the called method relies on a container annotation.
+A direct call does not pass through the container proxy, so <code>@Transactional</code>,
+<code>@TransactionAttribute</code>, <code>@Asynchronous</code>, <code>@Async</code>, cache and retry annotations do
+not apply to it.
+<p>A transaction annotation is not reported when the caller already has the same transaction settings.</p>
+<p>To fix this, move the method to another bean or call it through a proxy reference, such as an injected self
+reference or <code>SessionContext.getBusinessObject()</code>.</p>
+</body>
+</html>
