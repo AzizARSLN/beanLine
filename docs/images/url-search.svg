@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="270" viewBox="0 0 900 270" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15">
+  <rect width="900" height="270" rx="12" fill="#1E1F22"/>
+  <g font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#9DA0A8">
+    <text x="28" y="36">All</text>
+    <text x="72" y="36">Classes</text>
+    <text x="146" y="36">Files</text>
+    <text x="202" y="36">Symbols</text>
+    <text x="278" y="36">Actions</text>
+    <text x="356" y="36" fill="#FFFFFF" font-weight="600">Endpoints</text>
+  </g>
+  <rect x="348" y="46" width="82" height="3" fill="#3FA58C"/>
+  <rect x="20" y="62" width="860" height="44" rx="6" fill="#2B2D30" stroke="#3FA58C"/>
+  <text x="36" y="89" fill="#DFE1E5">https://app.example.com/shop/api/orders/42?expand=items</text>
+  <rect x="20" y="120" width="860" height="40" rx="6" fill="#2E436E"/>
+  <text x="36" y="145" fill="#FFFFFF" font-weight="700">GET</text>
+  <text x="84" y="145" fill="#FFFFFF">/api/orders/{id}</text>
+  <text x="330" y="145" fill="#B7BCC6">OrderResource#get</text>
+  <text x="36" y="185" fill="#DFE1E5" font-weight="700">PUT</text>
+  <text x="84" y="185" fill="#DFE1E5">/api/orders/{id}</text>
+  <text x="330" y="185" fill="#868A91">OrderResource#update</text>
+  <text x="36" y="225" fill="#DFE1E5" font-weight="700">DELETE</text>
+  <text x="110" y="225" fill="#DFE1E5">/api/orders/{id}</text>
+  <text x="330" y="225" fill="#868A91">OrderResource#delete</text>
+</svg>

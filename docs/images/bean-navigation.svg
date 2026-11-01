@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15">
+  <rect width="900" height="240" rx="12" fill="#1E1F22"/>
+  <rect x="0" y="0" width="48" height="240" rx="12" fill="#26282C"/>
+  <g transform="translate(16 54)" fill="none">
+    <path d="M2.5 13 C6 13 5 3.5 8 3.5 S10 13 13.5 13" stroke="#3FA58C" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="2.5" cy="13" r="1.5" fill="#D9A520"/>
+    <circle cx="8" cy="3.5" r="1.5" fill="#D9A520"/>
+    <circle cx="13.5" cy="13" r="1.5" fill="#D9A520"/>
+  </g>
+  <text x="68" y="44" fill="#B3AE60">@Stateless</text>
+  <text x="68" y="70"><tspan fill="#CF8E6D">public class </tspan><tspan fill="#DFE1E5">OrderService {</tspan></text>
+  <text x="100" y="104" fill="#7A7E85">// ...</text>
+  <text x="68" y="138" fill="#DFE1E5">}</text>
+  <rect x="340" y="56" width="500" height="140" rx="8" fill="#2B2D30" stroke="#5A5D63"/>
+  <text x="360" y="84" fill="#FFFFFF" font-family="'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600">Injection Points</text>
+  <rect x="348" y="98" width="484" height="36" rx="5" fill="#2E436E"/>
+  <text x="360" y="121" fill="#FFFFFF">orderService  in CheckoutBean</text>
+  <text x="360" y="165" fill="#DFE1E5">orderService  in OrderResource</text>
+</svg>

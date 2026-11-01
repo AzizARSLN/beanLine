@@ -13,6 +13,8 @@ An IntelliJ IDEA plugin for Jakarta EE, Java EE and Spring back ends.
 [![IntelliJ IDEA 2025.3+](https://img.shields.io/badge/IntelliJ%20IDEA-2025.3%2B-blue.svg)](https://www.jetbrains.com/idea/)
 [![GitHub stars](https://img.shields.io/github/stars/AzizARSLN/beanLine?style=flat)](https://github.com/AzizARSLN/beanLine/stargazers)
 
+**English** | [Türkçe](README.tr.md)
+
 </div>
 
 Large Java back ends make simple questions slow: which method serves this URL, who injects this bean, and why did
@@ -27,9 +29,7 @@ If Beanline saves you time, a ⭐ helps other Java developers find it.
 Paste a URL from the browser's Network tab, a log line or a bug report into the **Endpoints** tab of Search
 Everywhere, and jump to the Java method that serves it.
 
-```text
-https://app.example.com/shop/api/orders/42?expand=items   ->   OrderResource#get   GET /api/orders/{id}
-```
+![Illustration: a URL in the Endpoints tab of Search Everywhere listing the matching methods](docs/images/url-search.svg)
 
 - Hosts, context paths and query strings are ignored.
 - Path parameters match any value. `${id}`, `{{id}}` and `:id` in the text you search for work as wildcards.
@@ -44,7 +44,11 @@ URL on the clipboard. The string at the caret can be in any file, so it also wor
 A gutter icon on a bean class lists where it is injected. A gutter icon on an injected field lists the beans that
 can satisfy it.
 
+![Illustration: a gutter icon on a bean class opening a list of its injection points](docs/images/bean-navigation.svg)
+
 ### Catch container pitfalls while you type
+
+![Illustration: a warning that @Transactional does not apply to a call from the same bean](docs/images/self-invocation.svg)
 
 | Inspection | What it reports |
 |---|---|
@@ -53,6 +57,8 @@ can satisfy it.
 | **Managed bean created with new** | `new` on a bean with injected fields, which stay `null` |
 
 Each inspection can be turned off or have its severity changed under **Settings > Editor > Inspections > Beanline**.
+
+The images on this page are illustrations of the plugin's features, not screenshots.
 
 ## Supported
 
