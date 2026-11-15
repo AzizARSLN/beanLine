@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdea("2025.3")
+        intellijIdea("2022.3")
         bundledPlugin("com.intellij.java")
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
@@ -28,20 +28,20 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 intellijPlatform {
     instrumentCode = false
     pluginConfiguration {
         ideaVersion {
-            sinceBuild = "253"
+            sinceBuild = "223"
             untilBuild = provider { null }
         }
     }
     pluginVerification {
         ides {
-            create(IntelliJPlatformType.IntellijIdea, "2025.3")
+            create(IntelliJPlatformType.IntellijIdea, "2022.3")
         }
     }
 }

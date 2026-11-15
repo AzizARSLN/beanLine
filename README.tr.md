@@ -82,7 +82,7 @@ açmadan **Settings > Plugins > ⚙ > Install Plugin from Disk** ile kur.
 
 ## Kaynak koddan derleme
 
-JDK 21 gerekir.
+JDK 17 gerekir.
 
 ```shell
 ./gradlew buildPlugin

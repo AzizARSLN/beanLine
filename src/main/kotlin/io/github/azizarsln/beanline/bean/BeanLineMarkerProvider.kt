@@ -3,15 +3,13 @@ package io.github.azizarsln.beanline.bean
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.NotNullLazyValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.search.GlobalSearchScope
-
-private val BEAN_ICON = IconLoader.getIcon("/icons/bean.svg", BeanLineMarkerProvider::class.java)
+import io.github.azizarsln.beanline.ui.BeanlineIcons
 
 class BeanLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
@@ -41,7 +39,7 @@ class BeanLineMarkerProvider : RelatedItemLineMarkerProvider() {
         emptyText: String,
         targets: () -> Collection<PsiElement>,
     ): RelatedItemLineMarkerInfo<*> =
-        NavigationGutterIconBuilder.create(BEAN_ICON)
+        NavigationGutterIconBuilder.create(BeanlineIcons.Bean)
             .setTargets(NotNullLazyValue.lazy(targets))
             .setTooltipText(tooltip)
             .setPopupTitle(title)

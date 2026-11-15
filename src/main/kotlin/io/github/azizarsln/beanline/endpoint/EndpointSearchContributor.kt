@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.DumbService
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.Processor
@@ -27,6 +28,17 @@ class EndpointSearchContributor(private val project: Project) : SearchEverywhere
     override fun showInFindResults(): Boolean = false
 
     override fun isShownInSeparateTab(): Boolean = true
+
+    override fun getDataForItem(element: Endpoint, dataId: String): Any? = null
+
+    override fun getAdvertisement(): String? =
+        if (DumbService.isDumb(project)) {
+            "Indexing… Endpoints are unavailable until indexing finishes."
+        } else {
+            "Type a URL like /api/users or GET /api/users"
+        }
+
+    override fun isEmptyPatternSupported(): Boolean = true
 
     override fun fetchElements(
         pattern: String,

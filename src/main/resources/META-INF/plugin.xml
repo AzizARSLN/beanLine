@@ -44,5 +44,12 @@
             <add-to-group group-id="GoToTargetEx" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift E"/>
         </action>
+        <action id="Beanline.ConvertJpqlToSql"
+                class="io.github.azizarsln.beanline.sql.ConvertJpqlToSqlAction"
+                text="Convert JPQL to SQL"
+                description="Convert the selected JPQL/HQL query or QueryBuilder chain to PostgreSQL or Oracle SQL">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift Q"/>
+        </action>
     </actions>
 </idea-plugin>
