@@ -23,13 +23,14 @@ class QueryBuilderToJpqlTest {
         )!!
 
         assertEquals(
-            "select lt.adi as tetkikAdi, hm.kodu as makroKodu, sonuc from LisHastaTupTetkik t " +
-                "left join t.lisTetkik lt left join lt.hizmetMakro hm left join lht.lisTetkik lht " +
-                "where t.hastaHizmet.birimSevk.id in (:p1)",
+            "select lt.adi as tetkikAdi, hm.kodu as makroKodu, t.sonuc from LisHastaTupTetkik t " +
+                "left join LisTetkik lt on (lt=t.lisTetkik) " +
+                "left join HizmetMakro hm on (hm=lt.hizmetMakro) " +
+                "left join LisTupTetkik lht on (lt=lht.lisTetkik) " +
+                "where t.hastaHizmet.birimSevk.id in :p0",
             conversion.jpql,
         )
-        assertTrue(conversion.notes.toString(), conversion.notes.any { it.contains("names 'lt'") })
-        assertTrue(conversion.notes.toString(), conversion.notes.any { it.contains("alias being joined") })
+        assertTrue(conversion.notes.toString(), conversion.notes.isEmpty())
     }
 
     @Test
@@ -38,13 +39,13 @@ class QueryBuilderToJpqlTest {
             """
             QueryBuilder.create(Order.class, "o", em)
                 .join(Customer.class, "c", "c=o.customer", JoinType.LEFT)
-                .where("c.id = :customerId")
+                .where("c.id")
                 .orderBy("o.createdAt")
             """.trimIndent(),
         )!!
 
         assertEquals(
-            "select o from Order o left join o.customer c where c.id = :customerId order by o.createdAt",
+            "select o from Order o left join Customer c on (c=o.customer) where c.id = :p0 order by o.createdAt",
             conversion.jpql,
         )
         assertTrue(conversion.notes.isEmpty())

@@ -30,11 +30,11 @@ class GenerateCommitMessageAction : AnAction(
 
         val changes: Collection<Change> = e.getData(VcsDataKeys.CHANGES)?.toList()
             ?.takeIf { it.isNotEmpty() }
-            ?: ChangeListManager.getInstance(project).allChanges
+            ?: ChangeListManager.getInstance(project).defaultChangeList.changes
 
         val text = CommitMessageGenerator.generate(project, changes)
         if (text == null) {
-            Messages.showInfoMessage(project, "There are no pending changes to summarize.", TITLE)
+            Messages.showInfoMessage(project, "There are no pending changes to summarize and no branch was found.", TITLE)
             return
         }
 

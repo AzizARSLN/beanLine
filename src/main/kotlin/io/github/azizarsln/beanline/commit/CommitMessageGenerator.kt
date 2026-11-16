@@ -1,5 +1,6 @@
 package io.github.azizarsln.beanline.commit
 
+import com.intellij.dvcs.repo.VcsRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vcs.changes.Change
@@ -7,7 +8,13 @@ import com.intellij.openapi.vfs.VirtualFile
 
 object CommitMessageGenerator {
 
-    fun generate(project: Project, changes: Collection<Change>): String? {
+    /**
+     * The pending changes grouped by type, or the current branch name when there is nothing to summarize.
+     */
+    fun generate(project: Project, changes: Collection<Change>): String? =
+        summarize(project, changes) ?: currentBranchName(project)
+
+    private fun summarize(project: Project, changes: Collection<Change>): String? {
         val added = sortedSetOf<String>()
         val modified = sortedSetOf<String>()
         val deleted = sortedSetOf<String>()
@@ -36,6 +43,12 @@ object CommitMessageGenerator {
         files.forEach { appendLine("- $it") }
         appendLine()
     }
+
+    private fun currentBranchName(project: Project): String? =
+        VcsRepositoryManager.getInstance(project).repositories
+            .asSequence()
+            .mapNotNull { it.currentBranchName }
+            .firstOrNull()
 
     private fun relativePath(project: Project, file: VirtualFile?): String? {
         if (file == null) return null
