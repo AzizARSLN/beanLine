@@ -1,17 +1,14 @@
 package io.github.azizarsln.beanline.sql
 
-/** The JPQL a QueryBuilder chain stands for, together with the problems found on the way. */
+/** The HQL a QueryBuilder chain stands for, together with the problems found on the way. */
 data class QueryBuilderConversion(val jpql: String, val notes: List<String>)
 
-/**
- * Turns a fluent QueryBuilder chain into the JPQL it stands for, for example
- * `QueryBuilder.create(Order.class, "o", em).select("o.id").join(Customer.class, "c", "c=o.customer", JoinType.LEFT)`
- * becomes `select o.id from Order o left join o.customer c`.
- */
+
 object QueryBuilderToJpql {
 
     private val CREATE = Regex("""QueryBuilder\s*\.\s*create\s*\(""")
     private val STEP = Regex("""\.\s*([A-Za-z_]\w*)\s*\(""")
+    private const val DEFAULT_ROOT_ALIAS = "t"
 
     fun looksLikeChain(text: String): Boolean = CREATE.containsMatchIn(text)
 
@@ -20,14 +17,15 @@ object QueryBuilderToJpql {
         val create = CREATE.find(text) ?: return null
         val createCall = callArguments(text, create.range.last) ?: return null
         val rootEntity = entityName(createCall.arguments.getOrNull(0)) ?: return null
-        val rootAlias = stringLiteral(createCall.arguments.getOrNull(1)) ?: return null
+        val rootAlias = createCall.arguments.getOrNull(1)?.let(::stringLiteral) ?: DEFAULT_ROOT_ALIAS
 
-        val selects = mutableListOf<String>()
-        val joins = mutableListOf<String>()
-        val conditions = mutableListOf<String>()
-        val notes = mutableListOf<String>()
         val aliases = linkedSetOf(rootAlias)
-        var orderBy: String? = null
+        val joins = mutableListOf<String>()
+        val selects = mutableListOf<Selection>()
+        val conditions = mutableListOf<Condition>()
+        val notes = mutableListOf<String>()
+        var orderBy: Ordering? = null
+        var paramIndex = 0
 
         var index = createCall.end
         while (index < text.length) {
@@ -35,70 +33,103 @@ object QueryBuilderToJpql {
             val call = callArguments(text, step.range.last) ?: break
             when (step.groupValues[1]) {
                 "selectAlias" -> {
-                    val expression = stringLiteral(call.arguments.getOrNull(0))
+                    val field = stringLiteral(call.arguments.getOrNull(0))
                     val alias = stringLiteral(call.arguments.getOrNull(1))
-                    if (expression != null && alias != null) selects += "$expression as $alias"
+                    if (field != null) selects += Selection(field, alias?.takeIf { it.isNotBlank() })
                 }
-                "select" -> stringLiteral(call.arguments.getOrNull(0))?.let { selects += it }
-                "join" -> joinClause(call.arguments, aliases, notes)?.let { joins += it }
+                "select" -> {
+                    if (call.arguments.isEmpty()) {
+                        selects += Selection(rootAlias, null)
+                    } else {
+                        for (argument in call.arguments) stringLiteral(argument)?.let { selects += Selection(it, null) }
+                    }
+                }
+                "join" -> renderJoin(call.arguments, rootAlias, aliases, notes)?.let { joins += it }
                 "whereIn" -> stringLiteral(call.arguments.getOrNull(0))?.let {
-                    conditions += "$it in (:p${conditions.size + 1})"
+                    conditions += Condition(it, "in :p" + paramIndex++)
                 }
-                "where" -> stringLiteral(call.arguments.getOrNull(0))?.let { conditions += it }
-                "orderBy" -> orderBy = stringLiteral(call.arguments.getOrNull(0))
-                "orderByDesc" -> stringLiteral(call.arguments.getOrNull(0))?.let { orderBy = "$it desc" }
+                "whereNotIn" -> stringLiteral(call.arguments.getOrNull(0))?.let {
+                    conditions += Condition(it, "not in :p" + paramIndex++)
+                }
+                "where" -> stringLiteral(call.arguments.getOrNull(0))?.let {
+                    conditions += Condition(it, "= :p" + paramIndex++)
+                }
+                "whereBetween" -> stringLiteral(call.arguments.getOrNull(0))?.let {
+                    conditions += Condition(it, "between :p${paramIndex++} and :p${paramIndex++}")
+                }
+                "orderBy" -> stringLiteral(call.arguments.getOrNull(0))?.let { orderBy = Ordering(it, false) }
+                "orderByDesc" -> stringLiteral(call.arguments.getOrNull(0))?.let { orderBy = Ordering(it, true) }
             }
             index = call.end
         }
 
-        val selectList = selects.ifEmpty { listOf(rootAlias) }.joinToString(", ")
+        val selectList = if (selects.isEmpty()) {
+            rootAlias
+        } else {
+            selects.joinToString(", ") { selection ->
+                val field = resolveField(selection.field, rootAlias, aliases)
+                selection.alias?.let { "$field as $it" } ?: field
+            }
+        }
+
         val jpql = buildString {
             append("select ").append(selectList)
             append(" from ").append(rootEntity).append(' ').append(rootAlias)
             for (join in joins) append(' ').append(join)
-            if (conditions.isNotEmpty()) append(" where ").append(conditions.joinToString(" and "))
-            orderBy?.let { append(" order by ").append(it) }
+            if (conditions.isNotEmpty()) {
+                append(" where ")
+                append(conditions.joinToString(" and ") { "${resolveField(it.field, rootAlias, aliases)} ${it.suffix}" })
+            }
+            orderBy?.let {
+                append(" order by ").append(resolveField(it.field, rootAlias, aliases)).append(if (it.desc) " desc" else "")
+            }
         }
         return QueryBuilderConversion(jpql, notes)
     }
 
     /**
-     * Reads `join(Entity.class, "alias", "alias=relation", JoinType.LEFT)`. The condition binds the alias of the
-     * joined entity to a relation path, so `"o.customer=c"` and `"c=o.customer"` both mean the same join.
+     * `QueryBuilder.getJoinText` renders a class based join as `<type> join <Entity> <alias> on (<condition>)`
+     * and a plain path join as `<type> join <path> <alias>`.
      */
-    private fun joinClause(args: List<String>, aliases: MutableSet<String>, notes: MutableList<String>): String? {
-        val alias = stringLiteral(args.getOrNull(1)) ?: return null
-        val condition = stringLiteral(args.getOrNull(2))
-        val entity = entityName(args.getOrNull(0))
+    private fun renderJoin(
+        args: List<String>,
+        rootAlias: String,
+        aliases: MutableSet<String>,
+        notes: MutableList<String>,
+    ): String? {
+        val first = args.getOrNull(0)?.trim().orEmpty()
+        val type = joinType(args.lastOrNull())
 
-        val equals = condition?.indexOf('=') ?: -1
-        val conditionAlias = if (equals > 0) condition?.substring(0, equals)?.trim() else null
-        val relation = if (equals >= 0) condition?.substring(equals + 1)?.trim()?.takeIf { it.isNotEmpty() } else null
-
-        if (conditionAlias != null && conditionAlias != alias) {
-            notes += "join '$alias': the condition '$condition' names '$conditionAlias'; the declared alias was used"
-        }
-        if (relation != null) {
-            val head = relation.substringBefore('.')
-            when {
-                head == alias -> notes += "join '$alias': relation '$relation' refers to the alias being joined"
-                head !in aliases -> notes += "join '$alias': relation '$relation' starts with the unknown alias '$head'"
+        if (first.endsWith(".class")) {
+            val entity = entityName(first) ?: return null
+            val alias = stringLiteral(args.getOrNull(1)) ?: return null
+            val condition = stringLiteral(args.getOrNull(2))
+            aliases += alias
+            if (condition.isNullOrBlank()) {
+                notes += "'$alias' join has no condition, it was treated as a plain join"
+                return "$type $entity $alias"
             }
+            return "$type $entity $alias on ($condition)"
         }
-        aliases += alias
 
-        val joined = relation ?: entity ?: return null
-        val type = joinType(args.getOrNull(3))
-        return if (relation == null && condition != null) "$type join $joined $alias on $condition"
-        else "$type join $joined $alias"
+        val alias = stringLiteral(args.getOrNull(0)) ?: return null
+        val field = stringLiteral(args.getOrNull(1)) ?: return null
+        val path = resolveField(field, rootAlias, aliases)
+        aliases += alias
+        return "$type $path $alias"
+    }
+
+    private fun resolveField(field: String, rootAlias: String, aliases: Set<String>): String {
+        val head = field.substringBefore('.')
+        return if (field.contains('.') && head in aliases) field else "$rootAlias.$field"
     }
 
     private fun joinType(raw: String?): String =
-        when (raw?.substringAfterLast('.')?.trim()?.uppercase()) {
-            "LEFT" -> "left"
-            "RIGHT" -> "right"
-            "FULL" -> "full"
-            else -> "inner"
+        when (raw?.trim()?.removeSurrounding("\"")?.substringAfterLast('.')?.uppercase()) {
+            "LEFT" -> "left join"
+            "RIGHT" -> "right join"
+            "FULL" -> "full join"
+            else -> "join"
         }
 
     private fun entityName(raw: String?): String? {
@@ -160,6 +191,10 @@ object QueryBuilderToJpql {
     }
 
     private class Call(val arguments: List<String>, val end: Int)
+
+    private data class Selection(val field: String, val alias: String?)
+    private data class Condition(val field: String, val suffix: String)
+    private data class Ordering(val field: String, val desc: Boolean)
 
     private val QUOTES = charArrayOf('"', '\'')
 }

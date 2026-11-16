@@ -44,35 +44,29 @@ class ConvertJpqlToSqlAction : AnAction(
         val result = JpqlToSqlConverter.convert(project, jpql, dialect)
         val notes = chain?.notes.orEmpty() + result.notes
 
-        JpqlToSqlDialog(project, render(jpql, result, notes, options[choiceIndex], chain != null)).show()
+        JpqlToSqlDialog(project, render(result, notes, options[choiceIndex])).show()
     }
 
     private fun render(
-        jpql: String,
         result: JpqlToSqlResult,
         notes: List<String>,
         dialect: String,
-        fromChain: Boolean,
     ): String = buildString {
-        if (fromChain) {
-            appendLine("JPQL:")
-            appendLine(JpqlToSqlConverter.formatSql(jpql))
-            appendLine()
-        }
         appendLine("$dialect SQL:")
         appendLine(JpqlToSqlConverter.formatSql(result.sql))
-        if (result.parameterMap.isNotEmpty()) {
+        val parameters = result.parameterMap.entries.filter { (name, placeholder) -> placeholder != ":$name" }
+        if (parameters.isNotEmpty()) {
             appendLine()
             appendLine("Parameters:")
-            for ((name, placeholder) in result.parameterMap) {
+            for ((name, placeholder) in parameters) {
                 appendLine("$placeholder -> :$name")
             }
         }
         if (notes.isNotEmpty()) {
             appendLine()
-            appendLine("Notes:")
+            appendLine("---")
             for (note in notes) {
-                appendLine("- $note")
+                appendLine(note)
             }
         }
     }
