@@ -13,11 +13,15 @@
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
     <depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <searchEverywhereContributor
                 implementation="io.github.azizarsln.beanline.endpoint.EndpointSearchContributorFactory"/>
+
+        <checkinHandlerFactory
+                implementation="io.github.azizarsln.beanline.commit.CommitMessageCheckinHandlerFactory"/>
 
         <codeInsight.lineMarkerProvider language="JAVA"
                 implementationClass="io.github.azizarsln.beanline.bean.BeanLineMarkerProvider"/>
@@ -50,6 +54,12 @@
                 description="Convert the selected JPQL/HQL query or QueryBuilder chain to PostgreSQL or Oracle SQL">
             <add-to-group group-id="EditorPopupMenu" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift Q"/>
+        </action>
+        <action id="Beanline.GenerateCommitMessage"
+                class="io.github.azizarsln.beanline.commit.GenerateCommitMessageAction"
+                text="Generate Commit Message"
+                description="Append a summary of the pending changes to the commit message">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="first"/>
         </action>
     </actions>
 </idea-plugin>
